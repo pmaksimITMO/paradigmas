@@ -1,23 +1,25 @@
 package queue;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 public class ArrayQueue {
-    private int head, tail;
+    private int head = 0;
+    private int tail = 0;
     private Object[] elements = new Object[5];
 
     public void enqueue(Object element) {
         Objects.requireNonNull(element);
 
         this.ensureCapacity(this.size() + 1);
-        this.tail = (this.tail + 1) % this.elements.length;
         this.elements[this.tail] = element;
+        this.tail = (this.tail + 1) % this.elements.length;
     }
 
     private void ensureCapacity(int capacity) {
         if (capacity == this.elements.length) {
             Object[] newElements = new Object[2 * capacity];
-            for (int i = 0; i < capacity; i++) {
+            for (int i = 0; i < capacity - 1; i++) {
                 newElements[i] = this.elements[(this.head + i) % capacity];
             }
             this.elements = newElements;
@@ -28,19 +30,20 @@ public class ArrayQueue {
 
     public Object dequeue() {
         assert this.size() > 0;
-        Object result = this.elements[this.tail];
-        this.tail = (this.tail - 1 + this.elements.length) % this.elements.length;
+
+        Object result = this.elements[this.head];
+        this.head = (this.head + 1) % this.elements.length;
         return result;
     }
 
     public Object element() {
         assert this.size() > 0;
 
-        return this.elements[this.tail];
+        return this.elements[this.head];
     }
 
     public int size() {
-        return (this.tail < this.head ? this.head - this.tail : this.elements.length - this.head + this.tail) + 1;
+        return (this.head <= this.tail ? this.tail - this.head : this.elements.length - this.head + this.tail);
     }
 
     public boolean isEmpty() {
