@@ -11,6 +11,12 @@ public class ArrayQueueADT {
 
     }
 
+    public static ArrayQueueADT create() {
+        ArrayQueueADT queue = new ArrayQueueADT();
+        queue.elements = new Object[5];
+        return queue;
+    }
+
     // let save(queue, head, tail, st):
     // (forall i = head..tail-1) queue.elements`[(st + i) % a`.length] = queue.elements[(st + i) % a.length]
 
