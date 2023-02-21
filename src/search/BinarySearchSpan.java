@@ -67,7 +67,9 @@ public class BinarySearchSpan {
     }
 
 
-    // Pre: (forall i=1..a.length-1: a[i - 1] <= a[i])
+    // Pre: args.length = n + 1 && все args[i] представляют числа
+    // Обозначим за a[i] = args[i + 1]. a.length = n
+    // дополнительно известно что (forall i=1..a.length-1: a[i - 1] >= a[i])
     // Post: (a.length == 0) || (exists R1, R2: (forall j=0..R1-1: a[j] < a[R1]) && (forall j=R1..R2-1: a[j] = a[R1]) && (forall j=R2..a.length-1: a[j] > a[R1]))
 
     public static void main(String[] args) {

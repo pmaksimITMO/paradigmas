@@ -59,7 +59,9 @@ public class BinarySearch {
         return r;
     }
 
-    // Pre: (forall i=1..a.length-1: a[i - 1] >= a[i])
+    // Pre: args.length = n + 1 && все args[i] представляют числа
+    // Обозначим за a[i] = args[i + 1]. a.length = n
+    // дополнительно известно что (forall i=1..a.length-1: a[i - 1] >= a[i])
     // Post: (a.length == 0) || (a[a.length-1] > x) || (exists i=0..a.length-1: a[i] <= a[R] && (forall j=0..i-1: a[j] > a[R]))
     public static void main(String[] args) {
         int[] a = new int[args.length - 1];
