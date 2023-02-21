@@ -2,8 +2,12 @@ package queue;
 
 import base.ExtendedRandom;
 
+import java.lang.reflect.Field;
 import java.util.ArrayDeque;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
 /**
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
@@ -84,6 +88,189 @@ public final class Queues {
         default List<M> split(final QueueChecker<? extends M> tester, final M queue, final ExtendedRandom random) {
             test(tester, queue, random);
             return List.of();
+        }
+    }
+
+
+    // === Deque
+
+    /* package-private */ interface DequeModel extends QueueModel {
+        default void push(final Object element) {
+            model().addFirst(element);
+        }
+
+        @SuppressWarnings("UnusedReturnValue")
+        default Object peek() {
+            return model().getLast();
+        }
+
+        default Object remove() {
+            return model().removeLast();
+        }
+    }
+
+    /* package-private */ interface DequeChecker<T extends DequeModel> extends QueueChecker<T> {
+        @Override
+        default void add(final T queue, final Object element, final ExtendedRandom random) {
+            if (random.nextBoolean()) {
+                QueueChecker.super.add(queue, element, random);
+            } else {
+                queue.push(element);
+            }
+        }
+
+        @Override
+        default void check(final T queue, final ExtendedRandom random) {
+            if (random.nextBoolean()) {
+                QueueChecker.super.check(queue, random);
+            } else {
+                queue.peek();
+            }
+        }
+
+        @Override
+        default void remove(final T queue, final ExtendedRandom random) {
+            if (random.nextBoolean()) {
+                QueueChecker.super.remove(queue, random);
+            } else {
+                queue.remove();
+            }
+        }
+    }
+
+
+    // === ToArray
+
+    /* package-private */ interface ToArrayModel extends QueueModel {
+        default Object[] toArray() {
+            return model().toArray();
+        }
+    }
+
+    /* package-private */ static final LinearTester<ToArrayModel> TO_ARRAY = (tester, queue, random) -> queue.toArray();
+
+
+    // === DequeToArray
+
+    /* package-private */ interface DequeToArrayModel extends DequeModel, ToArrayModel {
+    }
+
+    /* package-private */ static final LinearTester<DequeToArrayModel> DEQUE_TO_ARRAY = TO_ARRAY::test;
+
+
+    // === Reflection
+
+    /* package-private */ interface ReflectionModel extends Queues.QueueModel {
+        Field ELEMENTS = getField("elements");
+        Field HEAD = getField("head");
+
+        @SuppressWarnings("unchecked")
+        private <Z> Z get(final Field field) {
+            try {
+                return (Z) field.get(model());
+            } catch (final IllegalAccessException e) {
+                throw new AssertionError("Cannot access field " + field.getName() + ": " + e.getMessage(), e);
+            }
+        }
+
+        private static Field getField(final String name) {
+            try {
+                final Field field = ArrayDeque.class.getDeclaredField(name);
+                field.setAccessible(true);
+                return field;
+            } catch (final NoSuchFieldException e) {
+                throw new AssertionError("Reflection error: " + e.getMessage(), e);
+            }
+        }
+
+        @ReflectionTest.Ignore
+        default int head() {
+            return get(HEAD);
+        }
+
+        @ReflectionTest.Ignore
+        default Object[] elements() {
+            return get(ELEMENTS);
+        }
+
+        @ReflectionTest.Ignore
+        default <R> R reduce(final R zero, final Predicate<Object> p, final BiFunction<R, Integer, R> f) {
+            final int size = size();
+            final Object[] elements = elements();
+            final int head = head();
+            R result = zero;
+            for (int i = 0; i < size; i++) {
+                if (p.test(elements[(head + i) % elements.length])) {
+                    result = f.apply(result, i);
+                }
+            }
+            return result;
+        }
+
+        @ReflectionTest.Ignore
+        default <R> R reduce(final R zero, final Object v, final BiFunction<R, Integer, R> f) {
+            return reduce(zero, o -> Objects.equals(v, o), f);
+        }
+    }
+
+
+    // === Indexed
+
+    /* package-private */ interface IndexedModel extends ReflectionModel {
+        default Object get(final int index) {
+            final Object[] elements = elements();
+            return elements[(head() + index) % elements.length];
+        }
+
+        default void set(final int index, final Object value) {
+            final Object[] elements = elements();
+            elements[(head() + index) % elements.length] = value;
+        }
+    }
+
+    /* package-private */ interface IndexedChecker<T extends IndexedModel> extends Queues.QueueChecker<T> {
+        @Override
+        default void check(final T queue, final ExtendedRandom random) {
+            Queues.QueueChecker.super.check(queue, random);
+            queue.get(randomIndex(queue, random));
+        }
+
+        @Override
+        default void add(final T queue, final Object element, final ExtendedRandom random) {
+            if (queue.isEmpty() || random.nextBoolean()) {
+                Queues.QueueChecker.super.add(queue, element, random);
+            } else {
+                queue.set(randomIndex(queue, random), randomElement(random));
+            }
+        }
+
+        private static int randomIndex(final Queues.QueueModel queue, final ExtendedRandom random) {
+            return random.nextInt(queue.size());
+        }
+    }
+
+
+    // === DequeIndexed
+
+    /* package-private */ interface DequeIndexedModel extends DequeModel, IndexedModel {}
+
+    /* package-private */ interface DequeIndexedChecker<M extends DequeIndexedModel> extends
+            DequeChecker<M>,
+            IndexedChecker<M>
+    {
+        @Override
+        default void check(final M queue, final ExtendedRandom random) {
+            DequeChecker.super.check(queue, random);
+            IndexedChecker.super.check(queue, random);
+        }
+
+        @Override
+        default void add(final M queue, final Object element, final ExtendedRandom random) {
+            if (random.nextBoolean()) {
+                DequeChecker.super.add(queue, element, random);
+            } else {
+                IndexedChecker.super.add(queue, element, random);
+            }
         }
     }
 }

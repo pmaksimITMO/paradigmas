@@ -14,6 +14,8 @@ import java.util.function.Consumer;
 public final class ArrayQueueTest {
     public static final Selector SELECTOR = new Selector(ArrayQueueTest.class)
             .variant("Base", variant(Queues.QueueModel.class, d -> () -> d))
+            .variant("DequeToArray", variant(Queues.DequeToArrayModel.class, (Queues.DequeChecker<Queues.DequeToArrayModel>) d -> () -> d, Queues.DEQUE_TO_ARRAY))
+            .variant("DequeIndexed", variant(Queues.DequeIndexedModel.class, (Queues.DequeIndexedChecker<Queues.DequeIndexedModel>) d -> () -> d))
             ;
 
     private ArrayQueueTest() {

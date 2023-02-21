@@ -22,7 +22,7 @@ public class ArrayQueueADT {
 
     // Pre: element != null
     // Post: Если a - число элементов в очереди до операции, а a` - после, то:
-    // a` = a + 1, tail` = tail + 1
+    // a` = a + 1
     // save(queue, head, tail, head`)
     // queue.elements`[tail`] = element
     public static void enqueue(ArrayQueueADT queue, Object element) {
@@ -30,6 +30,32 @@ public class ArrayQueueADT {
         ensureCapacity(queue, size(queue) + 1);
         queue.elements[queue.tail] = element;
         queue.tail = (queue.tail + 1) % queue.elements.length;
+    }
+
+    // Pre: element != null
+    // Post: Если a - число элементов в очереди до операции, а a` - после, то:
+    // a` = a + 1
+    // save(head, tail, head`)
+    // queue.elements`[head`] = element
+    public static void push(ArrayQueueADT queue, Object element) {
+        Objects.requireNonNull(element);
+
+        ensureCapacity(queue, size(queue) + 1);
+        queue.head = (queue.head - 1 + queue.elements.length) % queue.elements.length;
+        queue.elements[queue.head] = element;
+    }
+
+    // Pre: element != null && queue.size() > position >= 0
+    // Post: Если a - число элементов в очереди до операции, а a` - после, то:
+    // a` = a
+    // saveExceptOne(head, tail, head`, position, element)
+    // queue.elements`[head`] = element
+    public static void set(ArrayQueueADT queue, int position, Object element) {
+        Objects.requireNonNull(element);
+        assert size(queue) > position && position >= 0;
+
+        int realPosition = (queue.head + position) % queue.elements.length;
+        queue.elements[realPosition] = element;
     }
 
     // Pre: true
@@ -54,7 +80,7 @@ public class ArrayQueueADT {
     // Пусть a - число элементов в очереди до операции, а a` - после
     // Pre: a > 0
     // Post:
-    // a` = a - 1, tail` = tail, head` = head + 1
+    // a` = a - 1
     // save(queue, head + 1, tail, head`)
     // R = queue.elements[head]
     public static Object dequeue(ArrayQueueADT queue) {
@@ -65,15 +91,49 @@ public class ArrayQueueADT {
         return result;
     }
 
+    // Pre: a > 0
+    // Post: Пусть a - число элементов в очереди до операции, а a` - после
+    // a` = a - 1
+    // save(head + 1, tail`, head`)
+    // R = первый элемент в очереди
+    public static Object remove(ArrayQueueADT queue) {
+        assert size(queue) > 0;
+
+        queue.tail = (queue.tail - 1 + queue.elements.length) % queue.elements.length;
+        return queue.elements[queue.tail];
+    }
+
     // Пусть a - число элементов в очереди до операции, а a` - после
     // Pre: a > 0
-    // Post: a` = a, head` = head, tail` = tail
+    // Post: a` = a
     // queue.elements` = queue.elements
     // R = queue.elements[head]
     public static Object element(ArrayQueueADT queue) {
         assert size(queue) > 0;
 
         return queue.elements[queue.head];
+    }
+
+    // Пусть a - число элементов в очереди до операции, а a` - после
+    // Pre: a > 0
+    // Post: a` = a
+    // elements` = elements
+    // R = последний элемент в очереди
+    public static Object peek(ArrayQueueADT queue) {
+        assert size(queue) > 0;
+
+        return queue.elements[(queue.tail - 1 + queue.elements.length) % queue.elements.length];
+    }
+
+    // Пусть a - число элементов в очереди до операции, а a` - после
+    // Pre: a > 0 && queue.size() > index >= 0
+    // Post: a` = a
+    // queue.elements` = queue.elements
+    // R = элемент c номером index считая от головы
+    public static Object get(ArrayQueueADT queue, int index) {
+        assert size(queue) > index && index >= 0;
+
+        return queue.elements[(queue.head + index + queue.elements.length) % queue.elements.length];
     }
 
     // Если a - число элементов в очереди
@@ -92,7 +152,7 @@ public class ArrayQueueADT {
 
     // Пусть a - число элементов в очереди до операции, а a` - после
     // Pre: true
-    // Post: a` = 0, head` = 0, tail` = 0
+    // Post: a` = 0
     public static void clear(ArrayQueueADT queue) {
         queue.tail = queue.head;
     }
