@@ -67,7 +67,7 @@ public class BinarySearchSpan {
     }
 
 
-    // Pre: args.length = n + 1 && все args[i] представляют числа
+    // Pre: args.length = n + 1 && все args[i] конвертируемы в числа
     // Обозначим за a[i] = args[i + 1]. a.length = n
     // дополнительно известно что (forall i=1..a.length-1: a[i - 1] >= a[i])
     // Post: (a.length == 0) || (exists R1, R2: (forall j=0..R1-1: a[j] < a[R1]) && (forall j=R1..R2-1: a[j] = a[R1]) && (forall j=R2..a.length-1: a[j] > a[R1]))
@@ -78,13 +78,17 @@ public class BinarySearchSpan {
         for (int i = 0; i < a.length; i++) {
             a[i] = Integer.parseInt(args[i + 1]);
         }
+        // (forall i=1..a.length-1: a[i - 1] >= a[i])
         if (a.length == 0) {
+            //a.length = 0
             System.out.println("0 0");
         } else if (a[a.length - 1] < x) {
             // a.length > 0 && (forall i=1..a.length-1: a[i - 1] <= a[i]) && a[a.length-1] < x -> (forall i=0..a.length-1: a[i] < x)
             System.out.println(a.length + " 0");
         } else {
+            // a.length > 0 && (forall i=1..a.length-1: a[i - 1] <= a[i]) && a[a.length-1] >= x -> (exists i=0..a.length-2: a[i] < x <= a[i + 1]) or all a[i] >= x
             binarySpan(x, a);
         }
+        // (a.length == 0) || (exists R1, R2: (forall j=0..R1-1: a[j] < a[R1]) && (forall j=R1..R2-1: a[j] = a[R1]) && (forall j=R2..a.length-1: a[j] > a[R1]))
     }
 }
