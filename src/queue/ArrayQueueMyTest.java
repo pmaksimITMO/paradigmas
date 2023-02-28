@@ -1,51 +1,58 @@
 package queue;
 
+import java.util.Objects;
+
 public class ArrayQueueMyTest {
-    public static void fillBack(ArrayQueue queue, String word) {
-        for (int i = 0; i < 5; i++) {
-            queue.enqueue(word + i);
+    public static void check(ArrayQueue queue, String operation) {
+        try {
+            switch (operation) {
+                case "isEmpty" -> System.out.println(queue.isEmpty());
+                case "size" -> System.out.println(queue.size());
+                case "peek" -> System.out.println(queue.peek());
+                case "remove" -> queue.remove();
+                case "element" -> System.out.println(queue.element());
+                case "dequeue" -> System.out.println(queue.dequeue());
+            }
+            System.out.println("Correct operation: " + operation);
+        } catch (Throwable e) {
+            System.out.println("Incorrect operation: " + operation);
         }
     }
 
-    public static void fillFront(ArrayQueue queue, String word) {
-        for (int i = 0; i < 5; i++) {
-            queue.push(word + i);
+    public static void checkGETSET(ArrayQueue queue, String operation, int index, Object value) {
+        try {
+            switch (operation) {
+                case "get" -> System.out.println(queue.get(index));
+                case "set" -> queue.set(index, value);
+            }
+            System.out.println("Correct operation: " + operation + " " + index + " " + value);
+        } catch (Throwable e) {
+            System.err.println("Incorrect operation: " + operation + " " + index
+                    + (Objects.equals(operation, "get") ? "" : " " + value));
         }
     }
 
-    public static void dumpFront(ArrayQueue queue) {
-        while (!queue.isEmpty()) {
-            System.out.println(
-                    queue.size() + " " +
-                    queue.element() + " " +
-                    queue.dequeue()
-            );
+    public static void check(ArrayQueue queue, String operation, Object value) {
+        try {
+            switch (operation) {
+                case "push" -> queue.push(value);
+                case "enqueue" -> queue.enqueue(value);
+            }
+            System.out.println("Correct operation: " + operation + " " + value);
+        } catch (Throwable e) {
+            System.out.println("Incorrect operation: " + operation + " " + value);
         }
-    }
-
-    public static void dumpBack(ArrayQueue queue) {
-        while (!queue.isEmpty()) {
-            System.out.println(
-                    queue.size() + " " +
-                    queue.peek() + " " +
-                    queue.remove()
-            );
-        }
-    }
-
-    public static void update(ArrayQueue queue, String value, int index) {
-        queue.set(index, value);
-        System.out.println(queue.get(index));
     }
 
     public static void main(String[] args) {
-        ArrayQueue queue1 = new ArrayQueue();
-        ArrayQueue queue2 = new ArrayQueue();
-        fillBack(queue1, "Hello");
-        update(queue1, "OMG", 1);
-        fillFront(queue2, "world");
-        update(queue2, "OMG", 1);
-        dumpFront(queue1);
-        dumpBack(queue2);
+        ArrayQueue queue = new ArrayQueue();
+        check(queue, "push", null);
+        check(queue, "size");
+        check(queue, "isEmpty");
+        check(queue, "enqueue", null);
+        check(queue, "push", 1);
+        checkGETSET(queue, "get", 1, 1);
+        checkGETSET(queue, "set", 0, 2);
+        checkGETSET(queue, "set", -2, 2);
     }
 }
