@@ -273,4 +273,82 @@ public final class Queues {
             }
         }
     }
+
+
+    // === Contains
+
+    /* package-private */ interface ContainsModel extends Queues.QueueModel {
+        default boolean contains(final Object element) {
+            return model().contains(element);
+        }
+
+        @SuppressWarnings("UnusedReturnValue")
+        default boolean removeFirstOccurrence(final Object element) {
+            return model().removeFirstOccurrence(element);
+        }
+    }
+
+    /* package-private */ static final Queues.LinearTester<ContainsModel> CONTAINS = (tester, queue, random) -> {
+        final Object element = random.nextBoolean() ? tester.randomElement(random) : random.nextInt();
+        if (random.nextBoolean()) {
+            queue.contains(element);
+        } else {
+            queue.removeFirstOccurrence(element);
+        }
+    };
+
+
+    // === Nth
+
+    /* package-private */ interface NthModel extends Queues.QueueModel {
+        // Deliberately ugly implementation
+        @ReflectionTest.Wrap
+        default NthModel getNth(final int n) {
+            final ArrayDeque<Object> deque = new ArrayDeque<>();
+            final int[] index = {0};
+            model().forEach(e -> {
+                if (++index[0] % n == 0) {
+                    deque.add(e);
+                }
+            });
+            return () -> deque;
+        }
+
+        // Deliberately ugly implementation
+        @ReflectionTest.Wrap
+        default NthModel removeNth(final int n) {
+            final ArrayDeque<Object> deque = new ArrayDeque<>();
+            final int[] index = {0};
+            model().removeIf(e -> {
+                if (++index[0] % n == 0) {
+                    deque.add(e);
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+            return () -> deque;
+        }
+
+        default void dropNth(final int n) {
+            final int[] index = {0};
+            model().removeIf(e -> ++index[0] % n == 0);
+        }
+    }
+
+    /* package-private */ static final Queues.Splitter<NthModel> NTH = (tester, queue, random) -> {
+        final int n = random.nextInt(5) + 1;
+        switch (random.nextInt(3)) {
+            case 0:
+                final NthModel model = queue.removeNth(n);
+                return List.of(tester.cast(model));
+            case 1:
+                queue.dropNth(n);
+                return List.of();
+            case 2:
+                return List.of(tester.cast(queue.getNth(n)));
+            default:
+                throw new AssertionError();
+        }
+    };
 }

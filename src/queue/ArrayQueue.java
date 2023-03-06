@@ -1,147 +1,94 @@
 package queue;
 
-import java.util.Objects;
-
-public class ArrayQueue {
+public class ArrayQueue extends AbstractQueue {
     private int head = 0;
     private int tail = 0;
     private Object[] elements = new Object[5];
 
-    // let save(head, tail, st):
-    // (forall i = head..tail-1) this.elements`[(st + i) % a`.length] = this.elements[(st + i) % a.length]
-
-    // Pre: element != null
-    // Post: Если a - число элементов в очереди до операции, а a` - после, то:
-    // a` = a + 1
-    // save(head, tail, head`)
-    // this.elements`[tail`] = element
-
-    public void enqueue(Object element) {
-        Objects.requireNonNull(element);
-
-        this.ensureCapacity(this.size() + 1);
-        this.elements[this.tail] = element;
-        this.tail = (this.tail + 1) % this.elements.length;
+    public ArrayQueue makeCopy() {
+        ArrayQueue queue = new ArrayQueue();
+        int tmp = head;
+        while (tmp != tail) {
+            queue.enqueue(elements[tmp]);
+            tmp = increment(tmp, 1);
+        }
+        return queue;
     }
 
-    // Pre: element != null
-    // Post: Если a - число элементов в очереди до операции, а a` - после, то:
-    // a` = a + 1
-    // save(head, tail, head`)
-    // elements`[head`] = element
-    public void push(Object element) {
-        Objects.requireNonNull(element);
-
-        ensureCapacity(size() + 1);
-        this.head = (this.head - 1 + this.elements.length) % this.elements.length;
-        this.elements[this.head] = element;
+    protected void enqueueImpl(Object element) {
+        ensureCapacity(size + 1);
+        elements[tail] = element;
+        tail = increment(tail, 1);
     }
 
-    // Pre: element != null && size() > position >= 0
-    // Post: Если a - число элементов в очереди до операции, а a` - после, то:
-    // a` = a
-    // saveExceptOne(head, tail, head`, position, element)
-    // elements`[head`] = element
-    public void set(int position, Object element) {
-        Objects.requireNonNull(element);
-        assert this.size() > position && position >= 0;
+    protected void pushImpl(Object element) {
+        ensureCapacity(size + 1);
+        head = decrement(head, 1);
+        elements[head] = element;
+    }
 
-        int realPosition = (this.head + position) % this.elements.length;
-        this.elements[realPosition] = element;
+    protected void setImpl(int position, Object element) {
+        elements[increment(head, position)] = element;
     }
 
     // Pre: true
     // Post: Пусть a - число элементов в очереди до операции, а a` - после
-    // a` = a if a < capacity else a` = 2 * a
+    // a` = 1 if a is null else (a` = a if a < capacity else a` = 2 * a)
+    // Все элементы, лежавшие в очереди ранее, сохранены
     private void ensureCapacity(int capacity) {
-        if (capacity == this.elements.length) {
+        if (capacity == elements.length) {
             Object[] newElements = new Object[2 * capacity];
             for (int i = 0; i < capacity - 1; i++) {
-                newElements[i] = this.elements[(this.head + i) % capacity];
+                newElements[i] = this.elements[(head + i) % capacity];
             }
-            this.elements = newElements;
-            this.head = 0;
-            this.tail = capacity - 1;
+            elements = newElements;
+            head = 0;
+            tail = capacity - 1;
         }
     }
 
-    // Пусть a - число элементов в очереди до операции, а a` - после
-    // Pre: a > 0
-    // Post:
-    // a` = a - 1
-    // save(head + 1, tail`, head`)
-    // R = первый элемент в очереди
-    public Object dequeue() {
-        assert this.size() > 0;
-
-        Object result = this.elements[this.head];
-        this.head = (this.head + 1) % this.elements.length;
-        return result;
+    protected void dequeueImpl() {
+        head = increment(head, 1);
     }
 
-    // Pre: a > 0
-    // Post: Пусть a - число элементов в очереди до операции, а a` - после
-    // a` = a - 1
-    // save(head + 1, tail`, head`)
-    // R = первый элемент в очереди
-    public Object remove() {
-        assert this.size() > 0;
-
-        this.tail = (this.tail - 1 + this.elements.length) % this.elements.length;
-        return this.elements[this.tail];
+    protected void removeImpl() {
+        tail = decrement(tail, 1);
     }
 
-    // Пусть a - число элементов в очереди до операции, а a` - после
-    // Pre: a > 0
-    // Post: a` = a
-    // this.elements` = this.elements
-    // R = первый элемент в очереди
-    public Object element() {
-        assert this.size() > 0;
-
-        return this.elements[this.head];
+    protected Object elementImpl() {
+        return elements[head];
     }
 
-    // Пусть a - число элементов в очереди до операции, а a` - после
-    // Pre: a > 0
-    // Post: a` = a
-    // elements` = elements
-    // R = последний элемент в очереди
-    public Object peek() {
-        assert this.size() > 0;
-
-        return this.elements[(this.tail - 1 + this.elements.length) % this.elements.length];
+    protected Object peekImpl() {
+        return elements[decrement(tail, 1)];
     }
 
-    // Пусть a - число элементов в очереди до операции, а a` - после
-    // Pre: a > 0 && this.size() > index >= 0
-    // Post: a` = a
-    // this.elements` = this.elements
-    // R = элемент c номером index считая от головы
-    public Object get(int index) {
-        assert this.size() > index && index >= 0;
-
-        return this.elements[(this.head + index + this.elements.length) % this.elements.length];
+    protected Object getImpl(int index) {
+        return elements[increment(head,index)];
     }
 
-    // Если a - число элементов в очереди
-    // Pre: true
-    // Post: R = a
-    public int size() {
-        return (this.head <= this.tail ? this.tail - this.head : this.elements.length - this.head + this.tail);
+    protected void clearImpl() {
+        tail = head;
     }
 
-    // Если a - число элементов в очереди
-    // Pre: true
-    // Post: R = (a == 0)
-    public boolean isEmpty() {
-        return this.head == this.tail;
+    protected void dropNthImpl(int n) {
+        int position = head, id = 0, deleted = 0;
+        while (position != tail) {
+            if (id % n == n - 1) {
+                deleted++;
+            } else {
+                elements[decrement(position, deleted)] = elements[position];
+            }
+            id++;
+            position = increment(position, 1);
+        }
     }
 
-    // Пусть a - число элементов в очереди до операции, а a` - после
-    // Pre: true
-    // Post: a` = 0, head` = 0, tail` = 0
-    public void clear() {
-        this.tail = this.head;
+    private int increment(int val, int i) {
+        return (val + i) % elements.length;
+    }
+
+    private int decrement(int val, int i) {
+        return (val - i + elements.length) % elements.length;
     }
 }
