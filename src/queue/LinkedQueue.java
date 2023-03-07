@@ -16,7 +16,7 @@ public class LinkedQueue extends AbstractQueue {
     }
 
     protected void enqueueImpl(Object element) {
-        Node newNode = new Node(element, null, tail);
+        Node newNode = new Node(element, null);
         if (size == 0) {
             head = tail = newNode;
         } else {
@@ -26,11 +26,10 @@ public class LinkedQueue extends AbstractQueue {
     }
 
     protected void pushImpl(Object element) {
-        Node newNode = new Node(element, head, null);
+        Node newNode = new Node(element, head);
         if (size == 0) {
             tail = head = newNode;
         } else {
-            head.prev = newNode;
             head = newNode;
         }
     }
@@ -48,7 +47,6 @@ public class LinkedQueue extends AbstractQueue {
             head = tail = null;
         } else {
             head = head.next;
-            head.prev = null;
         }
     }
 
@@ -56,7 +54,11 @@ public class LinkedQueue extends AbstractQueue {
         if (size == 1) {
             head = tail = null;
         } else {
-            tail = tail.prev;
+            Node tmp = head;
+            while (tmp.next != tail) {
+                tmp = tmp.next;
+            }
+            tail = tmp;
             tail.next = null;
         }
     }
@@ -84,14 +86,13 @@ public class LinkedQueue extends AbstractQueue {
 
     private static class Node {
         private Object value;
-        private Node next, prev;
+        private Node next;
 
-        public Node(Object value, Node next, Node prev) {
+        public Node(Object value, Node next) {
             Objects.requireNonNull(value);
 
             this.value = value;
             this.next = next;
-            this.prev = prev;
         }
     }
 }

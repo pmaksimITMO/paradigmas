@@ -1,5 +1,10 @@
 package queue;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class ArrayQueue extends AbstractQueue {
     private int head = 0;
     private int tail = 0;
@@ -37,13 +42,15 @@ public class ArrayQueue extends AbstractQueue {
     // Все элементы, лежавшие в очереди ранее, сохранены
     private void ensureCapacity(int capacity) {
         if (capacity == elements.length) {
-            Object[] newElements = new Object[2 * capacity];
-            for (int i = 0; i < capacity - 1; i++) {
-                newElements[i] = this.elements[(head + i) % capacity];
+            elements = Arrays.copyOf(elements, 2 * capacity);
+            if (head > tail) {
+                Object[] headToEnd = Arrays.copyOfRange(elements, head, capacity);
+                Object[] startToTail = Arrays.copyOfRange(elements, 0, tail);
+                System.arraycopy(headToEnd, 0, elements, 0, headToEnd.length);
+                System.arraycopy(startToTail, 0, elements, headToEnd.length, startToTail.length);
+                head = 0;
+                tail = capacity - 1;
             }
-            elements = newElements;
-            head = 0;
-            tail = capacity - 1;
         }
     }
 
@@ -69,19 +76,6 @@ public class ArrayQueue extends AbstractQueue {
 
     protected void clearImpl() {
         tail = head;
-    }
-
-    protected void dropNthImpl(int n) {
-        int position = head, id = 0, deleted = 0;
-        while (position != tail) {
-            if (id % n == n - 1) {
-                deleted++;
-            } else {
-                elements[decrement(position, deleted)] = elements[position];
-            }
-            id++;
-            position = increment(position, 1);
-        }
     }
 
     private int increment(int val, int i) {
