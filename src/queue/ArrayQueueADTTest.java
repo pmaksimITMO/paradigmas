@@ -15,32 +15,49 @@ public class ArrayQueueADTTest {
 
     public static Deque<Object> testQueue = new ArrayDeque<>();
 
-    public static Object check(Test test) {
+    public static List<Object> check(Test test) {
         try {
-            Object result = true;
+            List<Object> result = new ArrayList<>();
             switch (test.operation) {
-                case "isEmpty" -> result = testQueue.isEmpty();
-                case "size" -> result = testQueue.size();
-                case "peek" -> result = testQueue.isEmpty() ? "Error" : testQueue.getLast();
-                case "remove" -> result = testQueue.isEmpty() ? "Error" : testQueue.removeLast();
-                case "element" -> result = testQueue.isEmpty() ? "Error" : testQueue.element();
-                case "dequeue" -> result = testQueue.isEmpty() ? "Error" : testQueue.removeFirst();
-                case "clear" -> testQueue.clear();
+                case "isEmpty" -> result.add(testQueue.isEmpty());
+                case "size" -> result.add(testQueue.size());
+                case "peek" -> result.add(testQueue.isEmpty() ? "Error" : testQueue.getLast());
+                case "remove" -> {
+                    if (testQueue.isEmpty()) {
+                        result.add("Error");
+                    } else {
+                        testQueue.removeLast();
+                        result = queueToList(testQueue);
+                    }
+                }
+                case "element" -> result.add(testQueue.isEmpty() ? "Error" : testQueue.element());
+                case "dequeue" -> {
+                    if (testQueue.isEmpty()) {
+                        result.add("Error");
+                    } else {
+                        testQueue.removeFirst();
+                        result = queueToList(testQueue);
+                    }
+                }
+                case "clear" -> {
+                    testQueue.clear();
+                    result.add(true);
+                }
                 case "push" -> {
                     testQueue.push(test.element);
-                    result = testQueue.element();
+                    result = queueToList(testQueue);
                 }
                 case "enqueue" -> {
                     testQueue.add(test.element);
-                    result = testQueue.getLast();
+                    result = queueToList(testQueue);
                 }
                 case "get" -> {
                     if (test.index < 0 || test.index >= testQueue.size()) {
-                        result = "Error";
+                        result.add("Error");
                     } else {
                         Deque<Object> copy = new ArrayDeque<>(testQueue);
                         for (int i = 0; i < copy.size(); i++) {
-                            if (i == test.index) result = testQueue.element();
+                            if (i == test.index) result.add(testQueue.element());
                             testQueue.removeFirst();
                         }
                         testQueue = copy;
@@ -48,7 +65,7 @@ public class ArrayQueueADTTest {
                 }
                 case "set" -> {
                     if (test.index < 0 || test.index >= testQueue.size()) {
-                        result = "Error";
+                        result.add("Error");
                     } else {
                         Deque<Object> copy = new ArrayDeque<>();
                         int length = testQueue.size();
@@ -59,48 +76,84 @@ public class ArrayQueueADTTest {
                             } else copy.add(testQueue.removeFirst());
                         }
                         testQueue = copy;
+                        result = queueToList(testQueue);
                     }
                 }
             }
             return result;
         } catch (Throwable e) {
-            return "Error";
+            return List.of("Error");
         }
     }
 
-    public static Object check(ArrayQueueADT queue, Test test) {
+    public static List<Object> check(ArrayQueueADT queue, Test test) {
         try {
-            Object result = true;
+            List<Object> result = new ArrayList<>();
             switch (test.operation) {
-                case "isEmpty" -> result = ArrayQueueADT.isEmpty(queue);
-                case "size" -> result = ArrayQueueADT.size(queue);
-                case "peek" -> result = ArrayQueueADT.peek(queue);
-                case "remove" -> result = ArrayQueueADT.remove(queue);
-                case "element" -> result = ArrayQueueADT.element(queue);
-                case "dequeue" -> result = ArrayQueueADT.dequeue(queue);
+                case "isEmpty" -> result.add(ArrayQueueADT.isEmpty(queue));
+                case "size" -> result.add(ArrayQueueADT.size(queue));
+                case "peek" -> result.add(ArrayQueueADT.peek(queue));
+                case "remove" -> {
+                    ArrayQueueADT.remove(queue);
+                    result = myQueueToList(queue);
+                }
+                case "element" -> result.add(ArrayQueueADT.element(queue));
+                case "dequeue" -> {
+                    ArrayQueueADT.dequeue(queue);
+                    result = myQueueToList(queue);
+                }
                 case "clear" -> {
                     ArrayQueueADT.clear(queue);
-                    result = ArrayQueueADT.size(queue) == 0;
+                    result.add(ArrayQueueADT.size(queue) == 0);
                 }
                 case "push" -> {
                     ArrayQueueADT.push(queue, test.element);
-                    result = ArrayQueueADT.element(queue);
+                    result = myQueueToList(queue);
                 }
                 case "enqueue" -> {
                     ArrayQueueADT.enqueue(queue, test.element);
-                    result = ArrayQueueADT.peek(queue);
+                    result = myQueueToList(queue);
                 }
-                case "get" -> result = ArrayQueueADT.get(queue, test.index);
-                case "set" -> ArrayQueueADT.set(queue, test.index, test.element);
+                case "get" -> result.add(ArrayQueueADT.get(queue, test.index));
+                case "set" -> {
+                    ArrayQueueADT.set(queue, test.index, test.element);
+                    result = myQueueToList(queue);
+                }
             }
             return result;
         } catch (Throwable e) {
-            return "Error";
+            return List.of("Error");
         }
     }
+
+    public static List<Object> myQueueToList(ArrayQueueADT queue) {
+        int size = ArrayQueueADT.size(queue);
+        List<Object> list = new ArrayList<>();
+        while (size > 0) {
+            Object element = ArrayQueueADT.element(queue);
+            list.add(element);
+            ArrayQueueADT.enqueue(queue, element);
+            ArrayQueueADT.dequeue(queue);
+            size--;
+        }
+        return list;
+    }
+
+    public static List<Object> queueToList(Deque<Object> queue) {
+        int size = queue.size();
+        List<Object> list = new ArrayList<>();
+        while (size > 0) {
+            list.add(queue.element());
+            queue.add(queue.element());
+            queue.removeFirst();
+            size--;
+        }
+        return list;
+    }
+
     public static void test(ArrayQueueADT queue, Test test) {
-        final Object res1 = check(test);
-        final Object res2 = check(queue, test);
+        final List<Object> res1 = check(test);
+        final List<Object> res2 = check(queue, test);
         if (!Objects.equals(res1, res2)) {
             throw new IllegalStateException(
                     "Undefined behaviour: " + test +
