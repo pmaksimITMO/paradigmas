@@ -44,12 +44,8 @@ public class ArrayQueue extends AbstractQueue {
         if (capacity == elements.length) {
             elements = Arrays.copyOf(elements, 2 * capacity);
             if (head > tail) {
-                Object[] headToEnd = Arrays.copyOfRange(elements, head, capacity);
-                Object[] startToTail = Arrays.copyOfRange(elements, 0, tail);
-                System.arraycopy(headToEnd, 0, elements, 0, headToEnd.length);
-                System.arraycopy(startToTail, 0, elements, headToEnd.length, startToTail.length);
-                head = 0;
-                tail = capacity - 1;
+                System.arraycopy(elements, 0, elements, capacity, tail);
+                tail = head + capacity - 1;
             }
         }
     }
