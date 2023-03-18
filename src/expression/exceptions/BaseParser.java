@@ -7,8 +7,11 @@ public class BaseParser {
 
     private char ch = 0xffff;
 
+    private String token;
+
     protected BaseParser(final CharSource source) {
         this.source = source;
+        this.token = "";
         take();
     }
 
@@ -18,12 +21,35 @@ public class BaseParser {
         return result;
     }
 
+    protected void takeToken() {
+        StringBuilder sb = new StringBuilder();
+        while (!eof() && Character.isLetterOrDigit(ch)) {
+            sb.append(take());
+        }
+        token = sb.toString();
+    }
+
+    protected String getToken() {
+        return token;
+    }
+
     protected char current() {
         return ch;
     }
 
     protected boolean test(final char expected) {
         return ch == expected;
+    }
+
+    protected boolean take(String expected) {
+        if (token.isEmpty() && Character.isLetter(ch)) {
+            takeToken();
+        }
+        if (expected.equals(token)) {
+            takeToken();
+            return true;
+        }
+        return false;
     }
 
     protected boolean take(final char expected) {

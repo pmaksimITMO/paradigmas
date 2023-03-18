@@ -2,11 +2,8 @@ package expression.parser;
 
 public class BaseParser {
     private static final char END = '\0';
-
     private final CharSource source;
-
     private char ch = 0xffff;
-
     protected BaseParser(final CharSource source) {
         this.source = source;
         take();
