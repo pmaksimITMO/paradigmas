@@ -19,7 +19,7 @@ public final class Asserts {
                 message, toString(expected), toString(actual));
         assertTrue(reason, Objects.deepEquals(expected, actual));
     }
-    
+
     private static String toString(final Object value) {
         if (value != null && value.getClass().isArray()) {
             final String result = Arrays.deepToString(new Object[]{value});

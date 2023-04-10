@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +22,7 @@ public interface Runner {
     List<String> run(final TestCounter counter, final List<String> input);
 
     default List<String> run(final TestCounter counter, final String... input) {
-        return run(counter, Arrays.asList(input));
+        return run(counter, List.of(input));
     }
 
     default void testEquals(final TestCounter counter, final List<String> input, final List<String> expected) {
@@ -139,6 +138,7 @@ public interface Runner {
 
         public Runner args(final String className) {
             final CommentRunner main = main(className);
+//            final AtomicReference<String> prev = new AtomicReference<>("");
             return (counter, input) -> {
                 final int total = input.stream().mapToInt(String::length).sum() + input.size() * 3;
                 final String comment = total <= 1000
@@ -149,24 +149,14 @@ public interface Runner {
                             .mapToObj(String::valueOf)
                             .collect(Collectors.joining(", ")))
                         : String.format("[%d arguments, total size: %d]", input.size(), total);
+//                assert comment.length() <= 5 || !prev.get().equals(comment) : "Duplicate tests " + comment;
+//                prev.set(comment);
                 return main.run(comment, counter, input);
             };
         }
 
         public Runner files(final String className) {
-            final CommentRunner main = main(className);
-            final Runner args = (counter1, input1) -> {
-                final int total = input1.stream().mapToInt(String::length).sum() + input1.size() * 3;
-                final String comment = total <= 1000
-                        ? input1.stream().collect(Collectors.joining("\" \"", "\"", "\""))
-                        : input1.size() <= 100
-                        ? String.format("[%d arguments, sizes: %s]", input1.size(), input1.stream()
-                        .mapToInt(String::length)
-                        .mapToObj(String::valueOf)
-                        .collect(Collectors.joining(", ")))
-                        : String.format("[%d arguments, total size: %d]", input1.size(), total);
-                return main.run(comment, counter1, input1);
-            };
+            final Runner args = args(className);
             return (counter, input) -> counter.call("io", () -> {
                 final Path inf = counter.getFile("in");
                 final Path ouf = counter.getFile("out");
