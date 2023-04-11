@@ -5,7 +5,7 @@ chapter("Error handling");
 section("Standard errors");
 
 try {
-    1();
+    //1();
 } catch (e) {
     println("Got exception");
     println("    toString():   " + e.toString());

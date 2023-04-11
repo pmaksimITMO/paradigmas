@@ -226,13 +226,15 @@ let parseVariant = (str, isPrefix) => {
                     let argc = operation[1];
                     if (argc === -1) {
                         argc = curArgs;
-                    }
-                    if (argc > stack.length || stack.length === 0) {
+                    } else if (argc > stack.length || stack.length === 0) {
                         throw new IllegalArgumentCount(stack.length, argc, position, str);
                     }
-                    let args = stack.splice(-argc);
-                    if (isPrefix) {
-                        args = args.reverse();
+                    let args = [];
+                    if (argc > 0) {
+                        args = stack.splice(-argc);
+                        if (isPrefix) {
+                            args = args.reverse();
+                        }
                     }
                     stack.push(new operation[0](...args));
                     curArgs = 1;
